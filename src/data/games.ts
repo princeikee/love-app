@@ -579,10 +579,10 @@ export const WEEKLY_ID = "compatibility";
 export const RECENT_IDS = ["green-red", "most-likely", "truth-or-dare", "spicy-wyr", "confessions", "rank-these"];
 
 export const COLLECTIONS = [
+  { id: "deep", title: "The hard talks", subtitle: "For when you're brave.", ids: ["testing-boundaries", "is-it-cheating", "what-would-hurt", "agree-disagree", "debate", "confessions", "compatibility"] },
   { id: "tonight", title: "For tonight", subtitle: "Slow burn, deep talk.", ids: ["before-the-ring", "hidden-side", "what-you-think", "princess-treatment", "fantasy-lab"] },
   { id: "playful", title: "Playful & light", subtitle: "Laughter required.", ids: ["most-likely", "this-or-that", "quick-fire", "finish-sentence", "two-truths-lie", "guess-my-answer"] },
   { id: "spicy", title: "After 10pm", subtitle: "A little warmer. Tap with consent.", ids: ["spicy-wyr", "spicy-nhi", "spicy-most-likely", "truth-or-dare", "hot-seat"] },
-  { id: "deep", title: "The hard talks", subtitle: "For when you're brave.", ids: ["testing-boundaries", "is-it-cheating", "what-would-hurt", "agree-disagree", "debate", "confessions", "compatibility"] },
   { id: "discovery", title: "Who are we", subtitle: "Tests, ranks, reveals.", ids: ["green-red", "rank-these", "pick-one", "yes-no", "finish-story"] },
 ];
 

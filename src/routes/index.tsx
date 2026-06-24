@@ -188,7 +188,7 @@ function AmourHome() {
               </button>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-1.5 rounded-[18px] border border-white/10 bg-white/[0.035] p-1.5 sm:mt-8 sm:flex sm:w-fit sm:rounded-[22px]">
+            <div className="mt-6 grid grid-cols-2 gap-1.5 rounded-[18px] border border-black/10 bg-black/[0.035] p-1.5 sm:mt-8 sm:flex sm:w-fit sm:rounded-[22px]">
               {([
                 ["partner", `Partner played`, categorizedGames.partner.length],
                 ["updated", `Updated`, categorizedGames.updated.length],
@@ -199,7 +199,7 @@ function AmourHome() {
                   key={id}
                   onClick={() => setGameFilter(id)}
                   className={`min-h-11 rounded-[14px] px-3 text-[13px] transition sm:rounded-2xl sm:px-4 sm:text-sm ${
-                    gameFilter === id ? "bg-white text-black" : "text-white/68 hover:bg-white/8 hover:text-white"
+                    gameFilter === id ? "bg-black text-white" : "text-black/68 hover:bg-black/8 hover:text-black"
                   }`}
                 >
                   {label} <span className="opacity-60">{count}</span>
@@ -208,22 +208,7 @@ function AmourHome() {
             </div>
           </section>
 
-          <GameGrid
-            games={categorizedGames[gameFilter]}
-            rounds={snapshot?.rounds ?? {}}
-            seen={snapshot?.seenQuestionCounts ?? {}}
-            profileId={profileId}
-            emptyLabel={
-              gameFilter === "partner"
-                ? `${PROFILES[partnerOf(profileId)].shortName} has not finished a waiting card yet.`
-                : gameFilter === "updated"
-                  ? "No updated cards right now."
-                  : "Nothing here yet."
-            }
-            onOpen={open}
-          />
-
-          {gameFilter === "all" && COLLECTIONS.map((col) => (
+          {gameFilter === "all" ? COLLECTIONS.map((col) => (
             <Carousel
               key={col.id}
               title={col.title}
@@ -231,7 +216,22 @@ function AmourHome() {
               items={col.ids.map(getCategory).filter(Boolean) as GameCategory[]}
               onOpen={open}
             />
-          ))}
+          )) : (
+            <GameGrid
+              games={categorizedGames[gameFilter]}
+              rounds={snapshot?.rounds ?? {}}
+              seen={snapshot?.seenQuestionCounts ?? {}}
+              profileId={profileId}
+              emptyLabel={
+                gameFilter === "partner"
+                  ? `${PROFILES[partnerOf(profileId)].shortName} has not finished a waiting card yet.`
+                  : gameFilter === "updated"
+                    ? "No updated cards right now."
+                    : "Nothing here yet."
+              }
+              onOpen={open}
+            />
+          )}
         </main>
       )}
 
