@@ -20,7 +20,7 @@ export function Hero({
 }) {
   const profile = PROFILES[profileId];
   const partner = PROFILES[partnerOf(profileId)];
-  const recentCategory = partnerRecent?.category ?? featured;
+  const recentCategory = partnerRecent?.category;
 
   return (
     <section id="top" className="relative px-4 pt-8 pb-12 sm:px-6 md:px-10 md:pt-12 md:pb-20 max-w-[1400px] mx-auto">
@@ -79,18 +79,22 @@ export function Hero({
                 <MessageCircleHeart size={15} strokeWidth={1.8} />
                 Partner recently played
               </div>
-              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl leading-tight mt-5 text-balance">{recentCategory.title}</h2>
+              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl leading-tight mt-5 text-balance">
+                {recentCategory ? recentCategory.title : `${partner.shortName} has not played yet`}
+              </h2>
               <p className="mt-3 text-sm md:text-base text-muted-foreground leading-7">
-                {partnerRecent
+                {partnerRecent && recentCategory
                   ? `${partner.shortName} finished this. Respond or play now to see their answers.`
-                  : `When ${partner.shortName} plays, their latest card will land here.`}
+                  : `When ${partner.shortName} finishes a card, their latest game will show up here.`}
               </p>
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
-                <button onClick={() => onPlay(recentCategory.id)} className="btn-primary magnetic min-h-12">
-                  Respond now
-                </button>
+                {recentCategory && (
+                  <button onClick={() => onPlay(recentCategory.id)} className="btn-primary magnetic min-h-12">
+                    Respond now
+                  </button>
+                )}
                 <button onClick={onBrowse} className="btn-ghost magnetic min-h-12">
-                  See all cards
+                  {recentCategory ? "See all cards" : "Browse games"}
                 </button>
               </div>
             </div>

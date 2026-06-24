@@ -112,7 +112,7 @@ function AmourHome() {
   const partnerRecent = useMemo(() => {
     if (!snapshot || !profileId) return undefined;
     const partnerId = partnerOf(profileId);
-    const activity = snapshot.activities.find((item) => item.actor === partnerId);
+    const activity = snapshot.activities.find((item) => item.actor === partnerId && item.action === "completed" && getCategory(item.categoryId));
     if (!activity) return undefined;
     return { ...activity, category: getCategory(activity.categoryId) } as AmourActivity & { category?: GameCategory };
   }, [profileId, snapshot]);
