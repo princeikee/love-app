@@ -7,7 +7,7 @@ function asProfileId(value: unknown): ProfileId {
 }
 
 export const getAmourSnapshotFn = createServerFn({ method: "GET" })
-  .validator((data: unknown) => {
+  .inputValidator((data: unknown) => {
     const input = data as { profileId?: unknown } | undefined;
     return { profileId: asProfileId(input?.profileId) };
   })
@@ -17,7 +17,7 @@ export const getAmourSnapshotFn = createServerFn({ method: "GET" })
   });
 
 export const saveProfileAnswersFn = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
+  .inputValidator((data: unknown) => {
     const input = data as {
       profileId?: unknown;
       categoryId?: unknown;
@@ -45,7 +45,7 @@ export const saveProfileAnswersFn = createServerFn({ method: "POST" })
   });
 
 export const markCategorySeenFn = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
+  .inputValidator((data: unknown) => {
     const input = data as {
       profileId?: unknown;
       categoryId?: unknown;
