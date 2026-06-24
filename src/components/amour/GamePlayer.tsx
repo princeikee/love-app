@@ -34,7 +34,8 @@ export function GamePlayer({
     return undefined;
   }, [cat, qIndex]);
 
-  const bothFinished = Boolean(round[profileId]?.length === total && round[partnerId]?.length === total);
+  const isComplete = (id: ProfileId) => (round[id]?.length ?? 0) >= total;
+  const bothFinished = Boolean(isComplete(profileId) && isComplete(partnerId));
   const progress = Math.min(1, qIndex / Math.max(1, total - 1));
 
   useEffect(() => {
@@ -62,8 +63,9 @@ export function GamePlayer({
   }, [cat.id, cat.questions.length, profileId]);
 
   const start = () => {
-    setDraft([]);
-    setQIndex(0);
+    const existingAnswers = round[profileId] ?? [];
+    setDraft(existingAnswers.slice(0, total));
+    setQIndex(Math.min(existingAnswers.length, total - 1));
     setPhase("answer");
   };
 
@@ -85,7 +87,7 @@ export function GamePlayer({
     setDraft(nextDraft);
     setRound(nextRound);
     onRoundSaved(cat.id, nextRound);
-    setPhase(nextRound[profileId]?.length === total && nextRound[partnerId]?.length === total ? "reveal" : "waiting");
+    setPhase((nextRound[profileId]?.length ?? 0) >= total && (nextRound[partnerId]?.length ?? 0) >= total ? "reveal" : "waiting");
   };
 
   const clearRound = () => {
@@ -184,8 +186,12 @@ function IntroPhase({
   onClear: () => void;
 }) {
   const partnerId = partnerOf(profileId);
-  const meDone = round[profileId]?.length === cat.questions.length;
-  const partnerDone = round[partnerId]?.length === cat.questions.length;
+  const answeredCount = round[profileId]?.length ?? 0;
+  const partnerAnsweredCount = round[partnerId]?.length ?? 0;
+  const meDone = answeredCount >= cat.questions.length;
+  const partnerDone = partnerAnsweredCount >= cat.questions.length;
+  const hasStarted = answeredCount > 0 && !meDone;
+  const remainingCount = Math.max(0, cat.questions.length - answeredCount);
 
   return (
     <div className="my-auto fade-up">
@@ -196,15 +202,19 @@ function IntroPhase({
       </p>
 
       <div className="mt-10 flex flex-wrap items-center gap-3">
-        {!meDone && <button onClick={onStart} className="btn-primary magnetic">Play my side</button>}
+        {!meDone && (
+          <button onClick={onStart} className="btn-primary magnetic">
+            {hasStarted ? `Answer ${remainingCount} new prompt${remainingCount === 1 ? "" : "s"}` : "Play my side"}
+          </button>
+        )}
         {meDone && partnerDone && <button onClick={onReveal} className="btn-primary magnetic">Reveal answers</button>}
         {(meDone || partnerDone) && <button onClick={onClear} className="btn-ghost magnetic">Start fresh</button>}
       </div>
 
       <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          [PROFILES[profileId].shortName, meDone ? "Complete" : "Open"],
-          [PROFILES[partnerId].shortName, partnerDone ? "Complete" : "Waiting"],
+          [PROFILES[profileId].shortName, meDone ? "Complete" : `${answeredCount}/${cat.questions.length}`],
+          [PROFILES[partnerId].shortName, partnerDone ? "Complete" : `${partnerAnsweredCount}/${cat.questions.length}`],
           ["Reveal", meDone && partnerDone ? "Unlocked" : "Locked"],
           ["Mode", "Long-distance"],
         ].map(([label, value]) => (
@@ -339,8 +349,8 @@ function WaitingPhase({
   onClose: () => void;
 }) {
   const partnerId = partnerOf(profileId);
-  const meDone = round[profileId]?.length === cat.questions.length;
-  const partnerDone = round[partnerId]?.length === cat.questions.length;
+  const meDone = (round[profileId]?.length ?? 0) >= cat.questions.length;
+  const partnerDone = (round[partnerId]?.length ?? 0) >= cat.questions.length;
 
   return (
     <div className="my-auto fade-up max-w-2xl">
@@ -374,7 +384,22 @@ function StatusCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function fmtAnswer(cat: GameCategory, a: Answer, options?: string[]) {
+function isPerspectiveChoice(cat: GameCategory) {
+  return cat.choices?.[0] === "You" && cat.choices?.[1] === "Me";
+}
+
+function answerProfile(cat: GameCategory, a: Answer, answererId: ProfileId) {
+  if (!isPerspectiveChoice(cat) || typeof a !== "number") return null;
+  if (a === 0) return partnerOf(answererId);
+  if (a === 1) return answererId;
+  return null;
+}
+
+function fmtAnswer(cat: GameCategory, a: Answer, options?: string[], answererId?: ProfileId) {
+  if (answererId) {
+    const pickedProfile = answerProfile(cat, a, answererId);
+    if (pickedProfile) return PROFILES[pickedProfile].name;
+  }
   if (cat.mode === "binary" || cat.mode === "pick") {
     if (typeof a === "number" && options) return options[a];
   }
@@ -390,7 +415,10 @@ function getOptions(cat: GameCategory, index: number) {
   return undefined;
 }
 
-function isMatch(cat: GameCategory, a: Answer, b: Answer) {
+function isMatch(cat: GameCategory, a: Answer, b: Answer, aProfileId?: ProfileId, bProfileId?: ProfileId) {
+  if (aProfileId && bProfileId && isPerspectiveChoice(cat)) {
+    return answerProfile(cat, a, aProfileId) === answerProfile(cat, b, bProfileId);
+  }
   if (cat.mode === "binary" || cat.mode === "pick") return a === b;
   if (cat.mode === "rank" && Array.isArray(a) && Array.isArray(b)) return JSON.stringify(a) === JSON.stringify(b);
   return false;
@@ -401,7 +429,7 @@ function RevealPhase({ cat, round, profileId, onDone }: { cat: GameCategory; rou
   const partnerId = partnerOf(profileId);
   const mine = round[profileId] ?? [];
   const theirs = round[partnerId] ?? [];
-  const aligned = cat.questions.filter((_, i) => isMatch(cat, mine[i], theirs[i])).length;
+  const aligned = cat.questions.filter((_, i) => isMatch(cat, mine[i], theirs[i], profileId, partnerId)).length;
 
   return (
     <div className="my-auto fade-up">
@@ -413,7 +441,7 @@ function RevealPhase({ cat, round, profileId, onDone }: { cat: GameCategory; rou
       <div className="mt-10 space-y-4">
         {cat.questions.map((q, i) => {
           const options = getOptions(cat, i);
-          const matched = isMatch(cat, mine[i], theirs[i]);
+          const matched = isMatch(cat, mine[i], theirs[i], profileId, partnerId);
           return (
             <div key={`${q}-${i}`} className="rounded-3xl hairline border bg-card p-5 md:p-7">
               <div className="flex items-center justify-between gap-4">
@@ -427,8 +455,8 @@ function RevealPhase({ cat, round, profileId, onDone }: { cat: GameCategory; rou
               </div>
               <h3 className="font-display text-2xl md:text-3xl mt-4 leading-tight">{q.replace("||", " / ")}</h3>
               <div className="mt-6 grid md:grid-cols-2 gap-3">
-                <AnswerCard label={PROFILES[profileId].name} mono={PROFILES[profileId].initials} value={fmtAnswer(cat, mine[i], options)} />
-                <AnswerCard label={PROFILES[partnerId].name} mono={PROFILES[partnerId].initials} value={fmtAnswer(cat, theirs[i], options)} />
+                <AnswerCard label={PROFILES[profileId].name} mono={PROFILES[profileId].initials} value={fmtAnswer(cat, mine[i], options, profileId)} />
+                <AnswerCard label={PROFILES[partnerId].name} mono={PROFILES[partnerId].initials} value={fmtAnswer(cat, theirs[i], options, partnerId)} />
               </div>
             </div>
           );
@@ -463,7 +491,7 @@ function DonePhase({ cat, round, profileId, onReplay, onClose }: {
   const partnerId = partnerOf(profileId);
   const mine = round[profileId] ?? [];
   const theirs = round[partnerId] ?? [];
-  const aligned = cat.questions.filter((_, i) => isMatch(cat, mine[i], theirs[i])).length;
+  const aligned = cat.questions.filter((_, i) => isMatch(cat, mine[i], theirs[i], profileId, partnerId)).length;
   const pct = Math.round((aligned / cat.questions.length) * 100);
 
   return (

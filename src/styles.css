@@ -270,6 +270,13 @@
     50% { opacity: 1; transform: scale(1.03); }
   }
 
+  .sync-spin {
+    animation: sync-spin 800ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+  @keyframes sync-spin {
+    to { transform: rotate(360deg); }
+  }
+
   .scroll-snap-x { scroll-snap-type: x mandatory; }
   .snap-start { scroll-snap-align: start; }
 
@@ -291,4 +298,10 @@
     transition: transform 300ms ease, box-shadow 300ms ease;
   }
   .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 20px 50px -20px var(--button-shadow); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sync-spin {
+    animation-duration: 1.8s;
+  }
 }

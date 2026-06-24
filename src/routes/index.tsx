@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
   component: AmourHome,
 });
 
-type GameFilter = "updated" | "partner" | "played" | "all";
+type GameFilter = "partner" | "unanswered" | "played" | "all";
 type ThemeMode = "light" | "dark";
 
 const profileStorageKey = "amour:active-profile";
@@ -49,6 +49,7 @@ function AmourHome() {
   const [activeTab, setActiveTab] = useState<AmourTab>("home");
   const [gameFilter, setGameFilter] = useState<GameFilter>("partner");
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => readStoredTheme());
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const featured = getCategory(FEATURED_ID)!;
   const daily = getCategory(DAILY_ID)!;
@@ -118,22 +119,41 @@ function AmourHome() {
   }, [profileId, snapshot]);
 
   const categorizedGames = useMemo(() => {
-    if (!snapshot || !profileId) return { updated: [], partner: [], played: [], all: CATEGORIES };
+    if (!snapshot || !profileId) return { partner: [], unanswered: CATEGORIES, played: [], all: CATEGORIES };
     const partnerId = partnerOf(profileId);
+    const latestActivityAt = new Map<string, number>();
+
+    for (const activity of snapshot.activities) {
+      const timestamp = new Date(activity.createdAt).getTime();
+      const current = latestActivityAt.get(activity.categoryId) ?? 0;
+      if (timestamp > current) latestActivityAt.set(activity.categoryId, timestamp);
+    }
+
+    const byRecentActivity = (a: GameCategory, b: GameCategory) =>
+      (latestActivityAt.get(b.id) ?? 0) - (latestActivityAt.get(a.id) ?? 0);
 
     return {
-      updated: CATEGORIES.filter((cat) => {
-        const seenCount = snapshot.seenQuestionCounts[cat.id];
-        return typeof seenCount === "number" && seenCount < cat.questions.length;
-      }),
       partner: CATEGORIES.filter((cat) => {
         const round = snapshot.rounds[cat.id];
-        return round?.[partnerId]?.length === cat.questions.length && round?.[profileId]?.length !== cat.questions.length;
-      }),
-      played: CATEGORIES.filter((cat) => snapshot.rounds[cat.id]?.[profileId]?.length === cat.questions.length),
+        return (round?.[partnerId]?.length ?? 0) >= cat.questions.length && (round?.[profileId]?.length ?? 0) < cat.questions.length;
+      }).sort(byRecentActivity),
+      unanswered: CATEGORIES.filter((cat) => (snapshot.rounds[cat.id]?.[profileId]?.length ?? 0) < cat.questions.length),
+      played: CATEGORIES.filter((cat) => {
+        const round = snapshot.rounds[cat.id];
+        return (round?.[profileId]?.length ?? 0) >= cat.questions.length || (round?.[partnerId]?.length ?? 0) >= cat.questions.length;
+      }).sort(byRecentActivity),
       all: CATEGORIES,
     };
   }, [profileId, snapshot]);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await refreshSnapshot();
+    } finally {
+      window.setTimeout(() => setIsSyncing(false), 350);
+    }
+  };
 
   const handleLogin = (nextProfileId: ProfileId) => {
     window.localStorage.setItem(profileStorageKey, nextProfileId);
@@ -208,16 +228,21 @@ function AmourHome() {
                   Choose the conversation.
                 </h1>
               </div>
-              <button onClick={() => void refreshSnapshot()} className="btn-ghost magnetic min-h-11 self-start md:self-auto">
-                <RefreshCw size={15} strokeWidth={1.8} />
-                Sync
+              <button
+                onClick={() => void handleSync()}
+                disabled={isSyncing}
+                className="btn-ghost magnetic min-h-11 self-start md:self-auto disabled:cursor-wait disabled:opacity-70"
+                aria-busy={isSyncing}
+              >
+                <RefreshCw size={15} strokeWidth={1.8} className={isSyncing ? "sync-spin" : ""} />
+                {isSyncing ? "Syncing" : "Sync"}
               </button>
             </div>
 
             <div className="segmented mt-6 grid grid-cols-2 gap-1.5 p-1.5 sm:mt-8 sm:flex sm:w-fit">
               {([
                 ["partner", `Partner played`, categorizedGames.partner.length],
-                ["updated", `Updated`, categorizedGames.updated.length],
+                ["unanswered", `Unanswered`, categorizedGames.unanswered.length],
                 ["played", `Played`, categorizedGames.played.length],
                 ["all", `All`, categorizedGames.all.length],
               ] as const).map(([id, label, count]) => (
@@ -249,8 +274,8 @@ function AmourHome() {
               emptyLabel={
                 gameFilter === "partner"
                   ? `${PROFILES[partnerOf(profileId)].shortName} has not finished a waiting card yet.`
-                  : gameFilter === "updated"
-                    ? "No updated cards right now."
+                  : gameFilter === "unanswered"
+                    ? "You have answered every card that is current."
                     : "Nothing here yet."
               }
               onOpen={open}
@@ -469,10 +494,22 @@ function GameCard({
   onOpen: () => void;
 }) {
   const partnerId = partnerOf(profileId);
-  const mineDone = round?.[profileId]?.length === cat.questions.length;
-  const partnerDone = round?.[partnerId]?.length === cat.questions.length;
+  const mineCount = round?.[profileId]?.length ?? 0;
+  const partnerCount = round?.[partnerId]?.length ?? 0;
+  const mineDone = mineCount >= cat.questions.length;
+  const partnerDone = partnerCount >= cat.questions.length;
   const updated = typeof seenCount === "number" && seenCount < cat.questions.length;
-  const status = mineDone && partnerDone ? "Completed" : partnerDone ? "Partner done" : mineDone ? "Played" : updated ? "Updated" : cat.mode;
+  const status = mineDone && partnerDone
+    ? "Completed"
+    : partnerDone
+      ? "Partner done"
+      : mineDone
+        ? "Played"
+        : mineCount > 0
+          ? `${cat.questions.length - mineCount} new`
+          : updated
+            ? "Updated"
+            : cat.mode;
   const imageSrc = cat.image ?? getCardImage(cat.id);
 
   return (
