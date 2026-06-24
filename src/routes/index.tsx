@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Lock, LogOut, RefreshCw } from "lucide-react";
+import { Heart, Lock, LogOut, Moon, RefreshCw, Sun } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Carousel } from "@/components/amour/Carousel";
@@ -24,13 +24,22 @@ export const Route = createFileRoute("/")({
 });
 
 type GameFilter = "updated" | "partner" | "played" | "all";
+type ThemeMode = "light" | "dark";
 
 const profileStorageKey = "amour:active-profile";
+const themeStorageKey = "amour:theme";
 
 function readStoredProfile(): ProfileId | null {
   if (typeof window === "undefined") return null;
   const value = window.localStorage.getItem(profileStorageKey);
   return value === "mr-babe" || value === "nom-nom-princess" ? value : null;
+}
+
+function readStoredTheme(): ThemeMode {
+  if (typeof window === "undefined") return "light";
+  const stored = window.localStorage.getItem(themeStorageKey);
+  if (stored === "light" || stored === "dark") return stored;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function AmourHome() {
@@ -39,6 +48,7 @@ function AmourHome() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AmourTab>("home");
   const [gameFilter, setGameFilter] = useState<GameFilter>("partner");
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => readStoredTheme());
 
   const featured = getCategory(FEATURED_ID)!;
   const daily = getCategory(DAILY_ID)!;
@@ -54,6 +64,11 @@ function AmourHome() {
   useEffect(() => {
     void refreshSnapshot();
   }, [refreshSnapshot]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeMode;
+    window.localStorage.setItem(themeStorageKey, themeMode);
+  }, [themeMode]);
 
   const open = useCallback((id: string) => {
     setActiveId(id);
@@ -151,13 +166,24 @@ function AmourHome() {
     <div className="relative min-h-screen pb-28 md:pb-32">
       <header className="sticky top-0 z-30 px-4 py-3 sm:px-6 md:px-10 pointer-events-none">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between">
-          <div className="pointer-events-auto rounded-full border border-white/10 bg-black/35 px-3 py-2 text-xs text-white/72 backdrop-blur-xl">
-            Signed in as <span className="text-white">{PROFILES[profileId].name}</span>
-            {snapshot && <span className="ml-2 text-white/38">({snapshot.source})</span>}
+          <div className="top-pill pointer-events-auto">
+            <Heart size={14} fill="currentColor" strokeWidth={1.7} />
+            <span>Signed in as <span className="font-medium text-foreground">{PROFILES[profileId].name}</span></span>
+            {snapshot && <span className="ml-1 opacity-50">({snapshot.source})</span>}
           </div>
-          <button onClick={handleLogout} className="pointer-events-auto h-11 w-11 rounded-full border border-white/10 bg-black/35 grid place-items-center text-white/72 hover:text-white hover:bg-white/10 transition" aria-label="Switch profile">
-            <LogOut size={17} strokeWidth={1.8} />
-          </button>
+          <div className="pointer-events-auto flex items-center gap-2">
+            <button
+              onClick={() => setThemeMode((current) => current === "dark" ? "light" : "dark")}
+              className="top-icon"
+              aria-label={`Switch to ${themeMode === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${themeMode === "dark" ? "light" : "dark"} mode`}
+            >
+              {themeMode === "dark" ? <Sun size={17} strokeWidth={1.8} /> : <Moon size={17} strokeWidth={1.8} />}
+            </button>
+            <button onClick={handleLogout} className="top-icon" aria-label="Switch profile">
+              <LogOut size={17} strokeWidth={1.8} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -188,7 +214,7 @@ function AmourHome() {
               </button>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-1.5 rounded-[18px] border border-black/10 bg-black/[0.035] p-1.5 sm:mt-8 sm:flex sm:w-fit sm:rounded-[22px]">
+            <div className="segmented mt-6 grid grid-cols-2 gap-1.5 p-1.5 sm:mt-8 sm:flex sm:w-fit">
               {([
                 ["partner", `Partner played`, categorizedGames.partner.length],
                 ["updated", `Updated`, categorizedGames.updated.length],
@@ -198,9 +224,7 @@ function AmourHome() {
                 <button
                   key={id}
                   onClick={() => setGameFilter(id)}
-                  className={`min-h-11 rounded-[14px] px-3 text-[13px] transition sm:rounded-2xl sm:px-4 sm:text-sm ${
-                    gameFilter === id ? "bg-black text-white" : "text-black/68 hover:bg-black/8 hover:text-black"
-                  }`}
+                  className={`segmented-item min-h-11 px-3 text-[13px] transition sm:px-4 sm:text-sm ${gameFilter === id ? "is-active" : ""}`}
                 >
                   {label} <span className="opacity-60">{count}</span>
                 </button>
