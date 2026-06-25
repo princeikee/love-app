@@ -37,7 +37,7 @@ export const PROFILES: Record<ProfileId, {
     shortName: "Mr Babe",
     passcode: "4123",
     initials: "MB",
-    image: "/images/mr-babe.jpg",
+    image: "/images/Mrbabe (1).jpeg",
     note: "The one who makes ordinary nights feel chosen.",
   },
   "nom-nom-princess": {
@@ -46,7 +46,7 @@ export const PROFILES: Record<ProfileId, {
     shortName: "Princess",
     passcode: "5123",
     initials: "NP",
-    image: "/images/nom-nom-princess.jpg",
+    image: "/images/princess.jpeg",
     note: "Soft heart, sharp laugh, forever the main character here.",
   },
 };
