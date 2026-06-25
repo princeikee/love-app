@@ -369,7 +369,7 @@ function ProfileGate({ onLogin }: { onLogin: (profileId: ProfileId) => void }) {
           <p className="mt-4 text-sm sm:text-base text-muted-foreground">Choose your profile, then put in your passcode.</p>
         </div>
 
-        <div className="mx-auto grid max-w-4xl gap-5 sm:grid-cols-2 sm:items-center sm:gap-6 md:gap-8">
+        <div className="mx-auto grid max-w-4xl grid-cols-2 items-center gap-3 sm:gap-6 md:gap-8">
           {(Object.keys(PROFILES) as ProfileId[]).map((id) => {
             const profile = PROFILES[id];
             const active = selected === id;
@@ -382,8 +382,8 @@ function ProfileGate({ onLogin }: { onLogin: (profileId: ProfileId) => void }) {
                   setPasscode("");
                   setError("");
                 }}
-                className={`group aspect-[3/4.35] min-h-[420px] rounded-[28px] hairline border bg-card p-5 text-left relative overflow-hidden transition sm:min-h-[500px] sm:rounded-[34px] md:min-h-[560px] ${
-                  isSecond ? "sm:translate-y-10" : "sm:-translate-y-7"
+                className={`group aspect-[3/4.35] min-h-[310px] rounded-[24px] hairline border bg-card p-3 text-left relative overflow-hidden transition min-[420px]:min-h-[360px] sm:min-h-[500px] sm:rounded-[34px] sm:p-5 md:min-h-[560px] ${
+                  isSecond ? "translate-y-7 sm:translate-y-10" : "-translate-y-5 sm:-translate-y-7"
                 } ${
                   active ? "ring-2 ring-white/70" : "hover:bg-white/[0.045]"
                 }`}
@@ -399,12 +399,12 @@ function ProfileGate({ onLogin }: { onLogin: (profileId: ProfileId) => void }) {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.08)_42%,rgba(0,0,0,0.72)_100%)]" />
                 <div className="absolute inset-x-0 top-0 h-32 bg-[linear-gradient(180deg,rgba(0,0,0,0.22),transparent)]" />
                 <div className="relative h-full flex flex-col justify-between">
-                  <div className="h-16 w-16 rounded-full border border-white/20 bg-black/35 text-white grid place-items-center text-sm font-semibold backdrop-blur-md sm:h-20 sm:w-20 sm:text-base">
+                  <div className="h-12 w-12 rounded-full border border-white/20 bg-black/35 text-white grid place-items-center text-xs font-semibold backdrop-blur-md sm:h-20 sm:w-20 sm:text-base">
                     {profile.initials}
                   </div>
                   <div>
-                    <div className="font-display text-4xl leading-none text-white sm:text-5xl md:text-6xl">{profile.name}</div>
-                    <p className="mt-3 max-w-[28ch] text-sm leading-6 text-white/78">{profile.note}</p>
+                    <div className="font-display text-[1.7rem] leading-none text-white min-[420px]:text-3xl sm:text-5xl md:text-6xl">{profile.name}</div>
+                    <p className="mt-2 max-w-[28ch] text-xs leading-5 text-white/78 sm:mt-3 sm:text-sm sm:leading-6">{profile.note}</p>
                   </div>
                 </div>
               </button>
