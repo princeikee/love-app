@@ -369,10 +369,11 @@ function ProfileGate({ onLogin }: { onLogin: (profileId: ProfileId) => void }) {
           <p className="mt-4 text-sm sm:text-base text-muted-foreground">Choose your profile, then put in your passcode.</p>
         </div>
 
-        <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+        <div className="mx-auto grid max-w-4xl gap-5 sm:grid-cols-2 sm:items-center sm:gap-6 md:gap-8">
           {(Object.keys(PROFILES) as ProfileId[]).map((id) => {
             const profile = PROFILES[id];
             const active = selected === id;
+            const isSecond = id === "nom-nom-princess";
             return (
               <button
                 key={id}
@@ -381,26 +382,29 @@ function ProfileGate({ onLogin }: { onLogin: (profileId: ProfileId) => void }) {
                   setPasscode("");
                   setError("");
                 }}
-                className={`min-h-[200px] rounded-[24px] hairline border bg-card p-5 text-left relative overflow-hidden transition sm:min-h-[260px] sm:rounded-[28px] ${
+                className={`group aspect-[3/4.35] min-h-[420px] rounded-[28px] hairline border bg-card p-5 text-left relative overflow-hidden transition sm:min-h-[500px] sm:rounded-[34px] md:min-h-[560px] ${
+                  isSecond ? "sm:translate-y-10" : "sm:-translate-y-7"
+                } ${
                   active ? "ring-2 ring-white/70" : "hover:bg-white/[0.045]"
                 }`}
               >
                 <img
                   src={profile.loginImage}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-cover opacity-70 mix-blend-luminosity transition duration-700"
+                  className="absolute inset-0 h-full w-full object-cover object-center opacity-100 transition duration-700 group-hover:scale-[1.025]"
                   onError={(event) => {
                     event.currentTarget.style.display = "none";
                   }}
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.78)),radial-gradient(75%_70%_at_30%_0%,rgba(255,255,255,0.14),transparent_65%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.08)_42%,rgba(0,0,0,0.72)_100%)]" />
+                <div className="absolute inset-x-0 top-0 h-32 bg-[linear-gradient(180deg,rgba(0,0,0,0.22),transparent)]" />
                 <div className="relative h-full flex flex-col justify-between">
                   <div className="h-16 w-16 rounded-full border border-white/20 bg-black/35 text-white grid place-items-center text-sm font-semibold backdrop-blur-md sm:h-20 sm:w-20 sm:text-base">
                     {profile.initials}
                   </div>
                   <div>
-                    <div className="font-display text-3xl sm:text-4xl md:text-5xl">{profile.name}</div>
-                    <p className="mt-3 text-sm text-muted-foreground leading-6">{profile.note}</p>
+                    <div className="font-display text-4xl leading-none text-white sm:text-5xl md:text-6xl">{profile.name}</div>
+                    <p className="mt-3 max-w-[28ch] text-sm leading-6 text-white/78">{profile.note}</p>
                   </div>
                 </div>
               </button>
