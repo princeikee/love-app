@@ -29,6 +29,7 @@ export const PROFILES: Record<ProfileId, {
   passcode: string;
   initials: string;
   image: string;
+  loginImage: string;
   note: string;
 }> = {
   "mr-babe": {
@@ -38,6 +39,7 @@ export const PROFILES: Record<ProfileId, {
     passcode: "4123",
     initials: "MB",
     image: "/images/Mrbabe (1).jpeg",
+    loginImage: "/images/Mrbabe2.jpeg",
     note: "The one who makes ordinary nights feel chosen.",
   },
   "nom-nom-princess": {
@@ -47,6 +49,7 @@ export const PROFILES: Record<ProfileId, {
     passcode: "5123",
     initials: "NP",
     image: "/images/princess.jpeg",
+    loginImage: "/images/princess2.jpeg",
     note: "Soft heart, sharp laugh, forever the main character here.",
   },
 };

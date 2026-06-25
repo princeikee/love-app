@@ -385,9 +385,17 @@ function ProfileGate({ onLogin }: { onLogin: (profileId: ProfileId) => void }) {
                   active ? "ring-2 ring-white/70" : "hover:bg-white/[0.045]"
                 }`}
               >
-                <div className="absolute inset-0 bg-[radial-gradient(75%_70%_at_30%_0%,rgba(255,255,255,0.08),transparent_65%)]" />
+                <img
+                  src={profile.loginImage}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover opacity-70 mix-blend-luminosity transition duration-700"
+                  onError={(event) => {
+                    event.currentTarget.style.display = "none";
+                  }}
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.78)),radial-gradient(75%_70%_at_30%_0%,rgba(255,255,255,0.14),transparent_65%)]" />
                 <div className="relative h-full flex flex-col justify-between">
-                  <div className="h-16 w-16 rounded-full bg-white text-black grid place-items-center text-sm font-semibold sm:h-20 sm:w-20 sm:text-base">
+                  <div className="h-16 w-16 rounded-full border border-white/20 bg-black/35 text-white grid place-items-center text-sm font-semibold backdrop-blur-md sm:h-20 sm:w-20 sm:text-base">
                     {profile.initials}
                   </div>
                   <div>
