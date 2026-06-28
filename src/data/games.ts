@@ -81,6 +81,7 @@ const testingBoundaries: GameCategory = {
     "Your partner spends a lot of time with someone who clearly wants more.",
     "Your partner compares you to someone they used to like or date.",
     "Your partner deletes harmless messages because they know the vibe looks bad.",
+    "Your partner goes through ypur phone or messages once in a while"
   ],
 };
 
