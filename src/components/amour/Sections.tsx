@@ -55,7 +55,7 @@ function ChallengeCard({
         src={imageSrc}
         alt=""
         loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover opacity-65 mix-blend-luminosity transition duration-700 group-hover:scale-105 group-hover:opacity-85"
+        className="absolute inset-0 h-full w-full object-cover opacity-80 saturate-125 transition duration-700 group-hover:scale-105 group-hover:opacity-95"
         onError={(event) => {
           const fallback = `https://picsum.photos/seed/amour-${cat.id}/900/700`;
           if (event.currentTarget.src !== fallback) {

@@ -146,6 +146,15 @@ function AmourHome() {
     };
   }, [profileId, snapshot]);
 
+  const playedCategoryIds = useMemo(() => {
+    if (!snapshot || !profileId) return new Set<string>();
+
+    return new Set(CATEGORIES.filter((cat) => {
+      const round = snapshot.rounds[cat.id];
+      return (round?.[profileId]?.length ?? 0) >= cat.questions.length;
+    }).map((cat) => cat.id));
+  }, [profileId, snapshot]);
+
   const handleSync = async () => {
     setIsSyncing(true);
     try {
@@ -263,6 +272,7 @@ function AmourHome() {
               title={col.title}
               subtitle={col.subtitle}
               items={col.ids.map(getCategory).filter(Boolean) as GameCategory[]}
+              playedIds={playedCategoryIds}
               onOpen={open}
             />
           )) : (
@@ -510,6 +520,7 @@ function GameCard({
   const partnerCount = round?.[partnerId]?.length ?? 0;
   const mineDone = mineCount >= cat.questions.length;
   const partnerDone = partnerCount >= cat.questions.length;
+  const isPlayed = mineDone;
   const updated = typeof seenCount === "number" && seenCount < cat.questions.length;
   const status = mineDone && partnerDone
     ? "Completed"
@@ -533,7 +544,9 @@ function GameCard({
         src={imageSrc}
         alt=""
         loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover opacity-70 mix-blend-luminosity transition duration-700 group-hover:scale-105 group-hover:opacity-90"
+        className={`absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105 ${
+          isPlayed ? "opacity-60 grayscale group-hover:opacity-75" : "opacity-80 saturate-125 group-hover:opacity-95"
+        }`}
         onError={(event) => {
           const fallback = `https://picsum.photos/seed/amour-${cat.id}/700/900`;
           if (event.currentTarget.src !== fallback) {

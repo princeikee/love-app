@@ -21,7 +21,17 @@ function getCardArt(cat: GameCategory, index: number) {
   ].join(", ");
 }
 
-export function CategoryCard({ cat, onClick, index }: { cat: GameCategory; onClick: () => void; index: number }) {
+export function CategoryCard({
+  cat,
+  onClick,
+  index,
+  isPlayed = false,
+}: {
+  cat: GameCategory;
+  onClick: () => void;
+  index: number;
+  isPlayed?: boolean;
+}) {
   const ref = useRef<HTMLButtonElement | null>(null);
   const imageSrc = cat.image ?? getCardImage(cat.id);
 
@@ -48,7 +58,9 @@ export function CategoryCard({ cat, onClick, index }: { cat: GameCategory; onCli
         src={imageSrc}
         alt=""
         loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover opacity-72 mix-blend-luminosity transition duration-700 group-hover:scale-105 group-hover:opacity-90"
+        className={`absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105 ${
+          isPlayed ? "opacity-60 grayscale group-hover:opacity-75" : "opacity-80 saturate-125 group-hover:opacity-95"
+        }`}
         onError={(event) => {
           const fallback = `https://picsum.photos/seed/amour-${cat.id}/900/1200`;
           if (event.currentTarget.src !== fallback) {
@@ -98,11 +110,13 @@ export function Carousel({
   title,
   subtitle,
   items,
+  playedIds,
   onOpen,
 }: {
   title: string;
   subtitle?: string;
   items: GameCategory[];
+  playedIds?: Set<string>;
   onOpen: (id: string) => void;
 }) {
   const scroller = useRef<HTMLDivElement | null>(null);
@@ -134,7 +148,7 @@ export function Carousel({
       >
         <div className="flex gap-3 sm:gap-5 md:gap-7 pb-4">
           {items.map((c, i) => (
-            <CategoryCard key={c.id} cat={c} index={i} onClick={() => onOpen(c.id)} />
+            <CategoryCard key={c.id} cat={c} index={i} isPlayed={playedIds?.has(c.id)} onClick={() => onOpen(c.id)} />
           ))}
           <div className="shrink-0 w-2" />
         </div>
